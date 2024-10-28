@@ -6,6 +6,11 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "build:ui": "rm -rf dist && git clone https://github.com/aayushsinha0706/phonebook-frontend.git && cd phonebook-frontend && npm install && npm run build && mv dist ../ && cd ../ && rm -rf phonebook-frontend",
+    "deploy": "fly auth login && fly deploy",
+    "app": "npm run build:ui && npm start",
+    "deploy:full": "npm run build:ui && npm run deploy",
+    "logs:prod": "fly logs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "aayush sinha",

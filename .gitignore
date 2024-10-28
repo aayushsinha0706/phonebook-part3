@@ -52,3 +52,5 @@ fly.toml
 # Backup files
 *.bak
 *.tmp
+
+dist/
