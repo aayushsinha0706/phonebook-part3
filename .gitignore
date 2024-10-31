@@ -23,7 +23,6 @@ jspm_packages/
 
 # dotenv environment variable files
 .env
-.env.* 
 # If you use different environment files, like .env.production or .env.local
 
 # Editor directories and files
