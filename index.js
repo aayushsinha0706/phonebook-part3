@@ -20,30 +20,6 @@ morgan.token("req-body", (req) => {
 
 app.use(morgan(":method :url :status :res[content-length] - :response-time ms :req-body"))
 
-
-let persons = [
-    { 
-      "id": "1",
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": "2",
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": "3",
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": "4",
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
-
 app.get('/api/persons', (request,response) => {
     Person.find({}).then(people => {
         response.json(people)
@@ -76,13 +52,6 @@ app.delete('/api/persons/:id', (request, response) => {
     response.status(204).end()
 })
 
-const generateId = () => {
-    const id = persons.length > 0
-     ? Math.floor(Math.random() * (99999999 - 5 + 1) + 5 )
-     : 0
-    return String(id)
-}
-
 app.post('/api/persons' , (request,response) => {
     const body = request.body
 
@@ -90,20 +59,14 @@ app.post('/api/persons' , (request,response) => {
         return response.status(400).json({error: 'name and number are required'})
     }
 
-    const personExists = persons.some(person => person.name.toLowerCase() === body.name.toLowerCase())
-
-    if (personExists) {
-        return response.status(400).json({ error: 'name must be unique' })
-    }
-
-    const person = {
-        id: generateId(),
+    const person = new Person({
         name: body.name,
         number: body.number
-    }
+    })
 
-    persons = persons.concat(person)
-    response.status(201).json(person)
+    person.save().then(savedPerson => {
+        response.status(201).json(savedPerson)
+    })
 })
 
 const PORT = process.env.PORT
