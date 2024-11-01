@@ -1,15 +1,26 @@
 const express = require('express')
+const app = express()
 require('dotenv').config()
 const morgan = require('morgan')
-const app = express()
 const cors = require('cors')
 const Person = require('./models/person')
 
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+    if(error.name === 'CastError') {
+      return response.status(400).json({ error: 'Invalid id' })
+    }
+    next(error)
+  }
+  
+const unknownEndpoint = (request,response) => {
+    response.status(404).json({ error: 'Unknown endpoint' })
+}
+
+app.use(express.static('dist'))
 app.use(express.json())
 app.use(morgan('tiny'))
 app.use(cors())
-app.use(express.static('dist'))
-
 
 morgan.token("req-body", (req) => {
     if (req.method === 'POST') {
@@ -27,29 +38,39 @@ app.get('/api/persons', (request,response) => {
 })
 
 app.get('/info', (request,response) => {
-    const totalEntries = persons.length
-    const currentTime = Date()
-    response.send(`
-        <p>Phonebook has info of ${totalEntries} people</p>
+   Person.countDocuments({})
+    .then(result => {
+        const currentTime = Date()
+        response.send(`
+        <p>Phonebook has info of ${result} people</p>
         <p>${currentTime}</p>
         `)
+    })
+    .catch(error => next(error))
 })
 
 app.get('/api/persons/:id', (request,response) => {
-    const id = request.params.id
-    const person = persons.find(person => person.id === id)
-    if (person) {
-        response.json(person)
-    }
-    else {
-        response.status(404).end()
-    }
+    Person.findById(request.params.id)
+    .then(person => {
+        if (person) {
+            response.json(person)
+        } else {
+            response.status(404).end()
+        }
+    })
+    .catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (request, response) => {
-    const id = request.params.id
-    persons = persons.filter(person => person.id!== id)
-    response.status(204).end()
+    Person.findByIdAndDelete(request.params.id)
+    .then(result => {
+        if (result) {
+            response.status(200).json(result)
+        } else {
+            response.status(404).end()
+        }
+    })
+   .catch(error => next(error))
 })
 
 app.post('/api/persons' , (request,response) => {
@@ -68,6 +89,9 @@ app.post('/api/persons' , (request,response) => {
         response.status(201).json(savedPerson)
     })
 })
+
+app.use(unknownEndpoint)  // Catch all other requests and return 404 error
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
