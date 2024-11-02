@@ -10,8 +10,8 @@ const errorHandler = (error, request, response, next) => {
     if(error.name === 'CastError') {
       return response.status(400).json({ error: 'Invalid id' })
     }
-    next(error)
-  }
+      next(error)
+}
   
 const unknownEndpoint = (request,response) => {
     response.status(404).json({ error: 'Unknown endpoint' })
@@ -96,9 +96,14 @@ app.put('/api/persons/:id', (request,response) => {
         name: body.name,
         number: body.number
     }
-    Person.findByIdAndUpdate(request.params.id, person,{new:true})
+    Person.findByIdAndUpdate(request.params.id, person,{new:true, runValidators: true})
     .then(updatedNumber => {
-        response.json(updatedNumber)
+        if(updatedNumber){
+            response.json(updatedNumber)
+        }
+        else {
+            response.status(404).end()
+        }
     })
     .catch(error => next(error))
 
