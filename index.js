@@ -31,13 +31,15 @@ morgan.token("req-body", (req) => {
 
 app.use(morgan(":method :url :status :res[content-length] - :response-time ms :req-body"))
 
-app.get('/api/persons', (request,response) => {
-    Person.find({}).then(people => {
+app.get('/api/persons', (request,response, next) => {
+    Person.find({})
+    .then(people => {
         response.json(people)
     })
+    .catch(error => next(error))
 })
 
-app.get('/info', (request,response) => {
+app.get('/info', (request,response,next) => {
    Person.countDocuments({})
     .then(result => {
         const currentTime = Date()
@@ -49,7 +51,7 @@ app.get('/info', (request,response) => {
     .catch(error => next(error))
 })
 
-app.get('/api/persons/:id', (request,response) => {
+app.get('/api/persons/:id', (request,response,next) => {
     Person.findById(request.params.id)
     .then(person => {
         if (person) {
@@ -61,7 +63,7 @@ app.get('/api/persons/:id', (request,response) => {
     .catch(error => next(error))
 })
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
     Person.findByIdAndDelete(request.params.id)
     .then(result => {
         if (result) {
@@ -90,7 +92,7 @@ app.post('/api/persons' , (request,response) => {
     })
 })
 
-app.put('/api/persons/:id', (request,response) => {
+app.put('/api/persons/:id', (request,response,next) => {
     const body = request.body
     const person = {
         name: body.name,
